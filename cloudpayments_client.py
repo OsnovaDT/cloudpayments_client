@@ -53,11 +53,17 @@ class CloudpaymentsAPIClient(AbstractInteractionClient):
         self.CONNECTOR.close()
         event_loop.close()
 
-    def __send_request(self, url: str, http_method_name: str) -> None:
+    def __send_request(
+            self, url: str, http_method_name: str, request_id=None) -> None:
         """Send request to the URL with the HTTP method"""
 
         if http_method := self.__get_http_method(name=http_method_name):
-            headers = {'Authorization': f'Basic {self.__credentials}'}
+            headers = {
+                'Authorization': f'Basic {self.__credentials}',
+            }
+
+            if request_id:
+                headers['X-Request-ID'] = request_id
 
             self.__run_http_method(http_method, url=url, headers=headers)
 
