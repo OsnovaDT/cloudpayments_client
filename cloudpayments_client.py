@@ -46,12 +46,12 @@ class CloudpaymentsAPIClient(AbstractInteractionClient):
             event_loop.run_until_complete(
                 http_method(interaction_method='', **kwargs),
             )
-
-            event_loop.run_until_complete(self.close())
-
-            event_loop.close()
         except InteractionResponseError as error:
             print(error)
+
+        event_loop.run_until_complete(self.close())
+        self.CONNECTOR.close()
+        event_loop.close()
 
     def __send_request(self, url: str, http_method_name: str) -> None:
         """Send request to the URL with the HTTP method"""
