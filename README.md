@@ -1,4 +1,4 @@
-# [CloudPayments client](https://cloudpayments.ru/)
+# [CloudPayments](https://cloudpayments.ru/) client
 Allow to use [CloudPayments API](https://developers.cloudpayments.ru/#api)
 
 ## Requirements
@@ -12,7 +12,7 @@ Install requirements
 pip install -r requirements.txt
 ```
 
-Run
+Test run
 ```bash
 python3.10 main.py
 ```
