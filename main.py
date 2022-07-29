@@ -1,6 +1,6 @@
 """For running CloudPaymentsAPIClient"""
 
-from datetime import date
+from base64 import b64encode
 
 from cloudpayments_client import CloudPaymentsAPIClient
 
@@ -13,19 +13,16 @@ if __name__ == "__main__":
 
     print('\n### Method charge ###')
     cloudpayments_client.charge({
-        "Amount": 10,
+        "Amount": 59,
         "Currency": "RUB",
-        "InvoiceId": 1234567,
-        "IpAddress": "123.123.123.123",
+        "InvoiceId": "1234567",
         "Description": "Оплата товаров в example.com",
         "AccountId": "user_x",
-        "Name": "CARDHOLDER NAME",
-        "CardCryptogramPacket": "01492500008719030128SMf",
+        "Token": b64encode(b"success_1111a3e0-2428-48fb-a530-12815d90"),
         "Payer": {
             "FirstName": "Тест",
             "LastName": "Тестов",
             "MiddleName": "Тестович",
-            "Birth": date(1955, 2, 24),
             "Address": "тестовый проезд дом тест",
             "Street": "Lenina",
             "City": "MO",

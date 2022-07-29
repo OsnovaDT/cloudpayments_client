@@ -1,12 +1,14 @@
 """Cloudpayments API client"""
 
 from asyncio import get_event_loop
-from base64 import b64encode
+from base64 import b64encode, b64decode
 
 from aiohttp import TCPConnector
+from marshmallow import ValidationError
+from loguru import logger
 
 from abstract_client import AbstractInteractionClient, InteractionResponseError
-from schemas import ChargePaymentSchema
+from schemas import ChargeTokenPaymentSchema
 
 
 class CloudPaymentsAPIClient(AbstractInteractionClient):
@@ -35,13 +37,12 @@ class CloudPaymentsAPIClient(AbstractInteractionClient):
     def charge(self, payment: dict) -> None:
         """API charge method - single-stage payment"""
 
-        payment_data = ChargePaymentSchema().dump(payment)
+        if payment_data := self.__get_payment_data(payment):
+            charge_endpoint = self.endpoint_url('payments/cards/charge/')
 
-        charge_endpoint = self.endpoint_url('payments/cards/charge/')
+            headers = self.__get_headers(is_auth=True)
 
-        headers = self.__get_headers(is_auth=True)
-
-        self.__send_request(charge_endpoint, headers, payment_data)
+            self.__send_request(charge_endpoint, headers, payment_data)
 
     def test(self, request_id=None) -> None:
         """API test method - check interaction with API"""
@@ -60,6 +61,20 @@ class CloudPaymentsAPIClient(AbstractInteractionClient):
 
         return b64encode(creds.encode()).decode("ascii")
 
+    def __get_payment_data(self, payment) -> dict:
+        """Return payment data in JSON format"""
+
+        if 'Token' in payment.keys():
+            payment['Token'] = str(b64decode(payment.get('Token')))
+
+        try:
+            payment_data = ChargeTokenPaymentSchema().load(payment)
+        except ValidationError as error:
+            payment_data = {}
+            logger.error(error)
+
+        return payment_data
+
     def __send_request(self, endpoint: str, headers: dict, json_=None) -> None:
         """Send request to the URL"""
 
@@ -69,7 +84,7 @@ class CloudPaymentsAPIClient(AbstractInteractionClient):
                 headers=headers, json=json_,
             ))
         except InteractionResponseError as error:
-            print(error)
+            logger.error(error)
 
         self.__event_loop.run_until_complete(self.close())
 
