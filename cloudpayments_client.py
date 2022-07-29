@@ -6,6 +6,7 @@ from base64 import b64encode, b64decode
 from aiohttp import TCPConnector
 from marshmallow import ValidationError
 from loguru import logger
+from transaction import begin
 
 from abstract_client import AbstractInteractionClient, InteractionResponseError
 from schemas import ChargeTokenPaymentSchema
@@ -78,13 +79,21 @@ class CloudPaymentsAPIClient(AbstractInteractionClient):
     def __send_request(self, endpoint: str, headers: dict, json_=None) -> None:
         """Send request to the URL"""
 
+        transaction_ = begin()
+
         try:
-            self.__event_loop.run_until_complete(self.post(
-                interaction_method='', url=endpoint,
-                headers=headers, json=json_,
-            ))
+            self.__event_loop.run_until_complete(
+                self.post(
+                    interaction_method='', url=endpoint,
+                    headers=headers, json=json_,
+                ),
+            )
+
+            transaction_.commit()
         except InteractionResponseError as error:
             logger.error(error)
+
+            transaction_.abort()
 
         self.__event_loop.run_until_complete(self.close())
 
